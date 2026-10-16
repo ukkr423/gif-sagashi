@@ -1,7 +1,7 @@
 // アプリ本体だけをキャッシュする（GIFやAPIの結果はキャッシュしない：KLIPYの利用規約に合わせる）
-const CACHE = 'gif-sagashi-v3';
+const CACHE = 'gif-sagashi-v4';
 const SHELL = [
-  './', 'index.html', 'styles.css', 'app.js', 'dict.js', 'manifest.webmanifest',
+  './', 'index.html', 'styles.css?v=4', 'app.js?v=4', 'dict.js', 'manifest.webmanifest',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
 ];
 
