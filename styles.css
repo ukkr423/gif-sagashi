@@ -95,10 +95,10 @@ button.ghost { background: transparent; border-color: transparent; color: var(--
 .chip[aria-pressed="true"] small { color: inherit; opacity: .8; }
 .chips .hint { font-size: 13px; color: var(--muted); align-self: center; }
 
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 4px 0 12px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 4px 0 12px; overflow-x: auto; }
 .tabs button {
   border: 0; border-radius: 0; background: transparent; color: var(--muted);
-  padding: 10px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  padding: 10px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
 }
 .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 
@@ -160,7 +160,14 @@ button.ghost { background: transparent; border-color: transparent; color: var(--
 .history-head .section-title { margin: 0; }
 .history-head button { font-size: 13px; padding: 6px 8px; }
 .search-history > p { margin: 4px 0 8px; }
-.search-history .chip { max-width: 100%; overflow-wrap: anywhere; text-align: left; }
+.search-history-list { display: grid; gap: 8px; }
+.search-history-row { display: flex; align-items: center; gap: 6px; }
+.search-history-query { flex: 1; min-width: 0; text-align: left; overflow-wrap: anywhere; }
+.search-history-star { flex: none; width: 44px; padding-inline: 0; font-size: 20px; }
+.search-history-star[aria-pressed="true"] { color: var(--star); }
+.search-history-row > .ghost { flex: none; padding: 9px 8px; font-size: 13px; }
+button:disabled { opacity: .5; cursor: default; }
+@media (max-width: 420px) { .tabs button { padding: 10px 8px; font-size: 14px; } }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
 

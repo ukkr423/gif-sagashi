@@ -35,20 +35,13 @@
 
   <nav class="tabs" role="tablist">
     <button role="tab" data-view="search" aria-selected="true">さがす</button>
+    <button role="tab" data-view="search-history" aria-selected="false">検索履歴</button>
     <button role="tab" data-view="fav" aria-selected="false">お気に入り</button>
     <button role="tab" data-view="hist" aria-selected="false">コピー履歴</button>
   </nav>
 
   <main>
     <section id="view-search">
-      <section id="searchHistory" class="card search-history" aria-labelledby="searchHistoryTitle" hidden>
-        <div class="history-head">
-          <h2 id="searchHistoryTitle" class="section-title">検索履歴</h2>
-          <button id="clearSearchHistory" type="button" class="ghost">検索履歴を消す</button>
-        </div>
-        <p class="muted small">最近の30件。タップして再検索できます。このブラウザに保存されます。</p>
-        <div id="searchHistoryList" class="chips"></div>
-      </section>
       <div id="setupCard" class="card setup" hidden>
         <h2>はじめに：KLIPYのAPIキーを登録</h2>
         <ol>
@@ -69,6 +62,25 @@
       <div id="grid" class="grid"></div>
       <p id="status" class="status" role="status"></p>
       <button id="moreBtn" type="button" class="more" hidden>もっと見る</button>
+    </section>
+
+    <section id="view-search-history" hidden>
+      <h2 class="section-title">検索したことば</h2>
+      <p class="muted small">ことばをタップして再検索。☆で保存すると履歴が増えても残せます。保存先はこのブラウザです。</p>
+      <section class="card search-history" aria-labelledby="savedSearchTitle">
+        <h3 id="savedSearchTitle" class="section-title">★ 保存したことば</h3>
+        <div id="savedSearchList" class="search-history-list"></div>
+        <p id="savedSearchEmpty" class="muted small">よく使うことばを☆で保存できます。</p>
+      </section>
+      <section class="card search-history" aria-labelledby="searchHistoryTitle">
+        <div class="history-head">
+          <h3 id="searchHistoryTitle" class="section-title">最近の検索（30件まで）</h3>
+          <button id="clearSearchHistory" type="button" class="ghost">通常の履歴を消す</button>
+        </div>
+        <p class="muted small">一括削除しても、★で保存したことばは残ります。</p>
+        <div id="searchHistoryList" class="search-history-list"></div>
+        <p id="searchHistoryEmpty" class="muted small">通常の検索履歴はありません。</p>
+      </section>
     </section>
 
     <section id="view-fav" hidden>

@@ -5,7 +5,7 @@
   const PER_PAGE = 36;
   const LOCALE = 'jp';
   const HIST_MAX = 60;
-  const LS = { settings: 'gs.settings', favs: 'gs.favs', hist: 'gs.hist', searches: 'gs.searches', cid: 'gs.cid', tcache: 'gs.tcache' };
+  const LS = { settings: 'gs.settings', favs: 'gs.favs', hist: 'gs.hist', searches: 'gs.searches', savedSearches: 'gs.savedSearches', cid: 'gs.cid', tcache: 'gs.tcache' };
 
   // ---- 保存まわり（プライベートモード等で使えなくても動くように） ----
   const store = {
@@ -18,6 +18,8 @@
   let hist = store.get(LS.hist, []);
   const savedSearches = store.get(LS.searches, []);
   let searches = Array.isArray(savedSearches) ? savedSearches.filter((q) => typeof q === 'string' && q.trim()).slice(0, 30) : [];
+  const savedTerms = store.get(LS.savedSearches, []);
+  let searchFavs = Array.isArray(savedTerms) ? savedTerms.filter((q) => typeof q === 'string' && q.trim()) : [];
   const tcache = store.get(LS.tcache, {});
   let cid = store.get(LS.cid, null);
   if (!cid) {
@@ -39,12 +41,16 @@
 
   function renderSearchHistory() {
     const list = $('#searchHistoryList');
+    const savedList = $('#savedSearchList');
     list.replaceChildren();
-    $('#searchHistory').hidden = searches.length === 0;
-    searches.forEach((q) => {
+    savedList.replaceChildren();
+    const isSaved = (q) => searchFavs.some((s) => norm(s) === norm(q));
+    function row(q) {
+      const item = document.createElement('div');
+      item.className = 'search-history-row';
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'chip';
+      b.className = 'search-history-query';
       b.textContent = q;
       b.setAttribute('aria-label', `「${q}」を再検索`);
       b.addEventListener('click', () => {
@@ -52,8 +58,44 @@
         showView('search');
         doSearch(q);
       });
-      list.append(b);
-    });
+      const star = document.createElement('button');
+      star.type = 'button';
+      star.className = 'search-history-star';
+      star.textContent = isSaved(q) ? '★' : '☆';
+      star.setAttribute('aria-pressed', String(isSaved(q)));
+      star.setAttribute('aria-label', isSaved(q) ? `「${q}」の保存を解除` : `「${q}」を保存`);
+      star.addEventListener('click', () => {
+        if (isSaved(q)) {
+          searchFavs = searchFavs.filter((s) => norm(s) !== norm(q));
+          searches = [q, ...searches.filter((s) => norm(s) !== norm(q))].slice(0, 30);
+        } else searchFavs.unshift(q);
+        saveSearchHistory();
+      });
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'ghost';
+      remove.textContent = '削除';
+      remove.setAttribute('aria-label', `「${q}」を削除`);
+      remove.addEventListener('click', () => {
+        searches = searches.filter((s) => norm(s) !== norm(q));
+        searchFavs = searchFavs.filter((s) => norm(s) !== norm(q));
+        saveSearchHistory();
+      });
+      item.append(b, star, remove);
+      return item;
+    }
+    searchFavs.forEach((q) => savedList.append(row(q)));
+    const recent = searches.filter((q) => !isSaved(q));
+    recent.forEach((q) => list.append(row(q)));
+    $('#savedSearchEmpty').hidden = searchFavs.length > 0;
+    $('#searchHistoryEmpty').hidden = recent.length > 0;
+    $('#clearSearchHistory').disabled = recent.length === 0;
+  }
+
+  function saveSearchHistory() {
+    store.set(LS.searches, searches);
+    store.set(LS.savedSearches, searchFavs);
+    renderSearchHistory();
   }
 
   function rememberSearch(raw) {
@@ -65,10 +107,9 @@
   }
 
   $('#clearSearchHistory').addEventListener('click', () => {
-    if (!searches.length || !confirm('検索したことばの履歴をすべて消しますか？')) return;
+    if (!searches.length || !confirm('通常の検索履歴を消しますか？★で保存したことばは残ります。')) return;
     searches = [];
-    store.set(LS.searches, searches);
-    renderSearchHistory();
+    saveSearchHistory();
   });
 
   // ---- 日本語の正規化と辞書 ----
@@ -532,6 +573,9 @@
     $('#view-search').hidden = v !== 'search';
     $('#view-fav').hidden = v !== 'fav';
     $('#view-hist').hidden = v !== 'hist';
+    $('#view-search-history').hidden = v !== 'search-history';
+    el.chips.hidden = v !== 'search';
+    if (v === 'search-history') renderSearchHistory();
     if (v === 'fav') renderFavs();
     if (v === 'hist') renderHist();
   }
