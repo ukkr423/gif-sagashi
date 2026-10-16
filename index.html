@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GIFさがし</title>
+  <meta name="description" content="日本語に強いGIF検索。タップでコピーしてDiscordに貼るだけ。">
+  <meta name="theme-color" content="#f6f6f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e1f24" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GIFさがし">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="" width="28" height="28">
+      <h1>GIFさがし</h1>
+    </div>
+    <button id="settingsBtn" class="icon-btn" aria-label="設定" title="設定">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+    </button>
+  </header>
+
+  <form id="searchForm" class="search" role="search">
+    <input id="q" type="search" placeholder="日本語でOK（例：草、ぴえん、おつかれ）" enterkeyhint="search" autocomplete="off" aria-label="検索ワード">
+    <button type="submit" class="primary">検索</button>
+  </form>
+  <div id="chips" class="chips" aria-label="検索ワードの候補"></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-view="search" aria-selected="true">さがす</button>
+    <button role="tab" data-view="fav" aria-selected="false">お気に入り</button>
+    <button role="tab" data-view="hist" aria-selected="false">履歴</button>
+  </nav>
+
+  <main>
+    <section id="view-search">
+      <div id="setupCard" class="card setup" hidden>
+        <h2>はじめに：KLIPYのAPIキーを登録</h2>
+        <ol>
+          <li><a href="https://partner.klipy.com/api-keys" target="_blank" rel="noopener">KLIPY Partner Panel</a> にアクセスしてアカウントを作成</li>
+          <li>「API Keys」でアプリ（プラットフォーム）を作成し、キーをコピー</li>
+          <li>右上の ⚙ 設定 を開いて、キーを貼り付けて保存</li>
+        </ol>
+        <p class="muted">テスト用キーは1時間に100回まで検索できます。</p>
+        <button type="button" class="primary" data-open-settings>設定を開く</button>
+      </div>
+
+      <div id="mySection" hidden>
+        <h2 class="section-title">マイタグに一致</h2>
+        <div id="myGrid" class="grid"></div>
+      </div>
+
+      <h2 id="resultTitle" class="section-title"></h2>
+      <div id="grid" class="grid"></div>
+      <p id="status" class="status" role="status"></p>
+      <button id="moreBtn" type="button" class="more" hidden>もっと見る</button>
+    </section>
+
+    <section id="view-fav" hidden>
+      <input id="favFilter" type="search" class="filter" placeholder="マイタグ・タイトルで絞り込み" aria-label="お気に入りを絞り込み">
+      <div id="favGrid" class="grid"></div>
+      <p id="favEmpty" class="status">★を押すとここに保存されます。</p>
+    </section>
+
+    <section id="view-hist" hidden>
+      <div class="row-end"><button id="clearHist" type="button" class="ghost">履歴を消す</button></div>
+      <div id="histGrid" class="grid"></div>
+      <p id="histEmpty" class="status">コピーしたGIFがここに並びます。</p>
+    </section>
+  </main>
+
+  <footer class="foot">Powered by <a href="https://klipy.com" target="_blank" rel="noopener">KLIPY</a></footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="detail" class="sheet">
+    <form method="dialog" class="sheet-head">
+      <strong id="detailTitle"></strong>
+      <button class="icon-btn" aria-label="閉じる">✕</button>
+    </form>
+    <img id="detailImg" alt="">
+    <div class="sheet-actions">
+      <button id="dCopy" type="button" class="primary">URLをコピー</button>
+      <button id="dShare" type="button">共有…</button>
+      <button id="dFav" type="button">☆ お気に入り</button>
+    </div>
+    <label class="field">
+      <span>マイタグ（スペース区切り）</span>
+      <input id="dTags" type="text" placeholder="例：うちの猫 定番 返事用" autocomplete="off">
+    </label>
+    <p class="muted small">タグを付けると自動でお気に入りに入り、次からそのことばで一発で出ます。</p>
+  </dialog>
+
+  <dialog id="settings" class="sheet">
+    <form method="dialog" class="sheet-head">
+      <strong>設定</strong>
+      <button class="icon-btn" aria-label="閉じる">✕</button>
+    </form>
+
+    <label class="field">
+      <span>KLIPY APIキー</span>
+      <input id="sKey" type="password" autocomplete="off" spellcheck="false" placeholder="Partner Panelで発行したキー">
+    </label>
+
+    <label class="field">
+      <span>表示のきびしさ（不適切なGIFのフィルタ）</span>
+      <select id="sFilter">
+        <option value="high">強</option>
+        <option value="medium">中（おすすめ）</option>
+        <option value="low">弱</option>
+        <option value="off">なし</option>
+      </select>
+    </label>
+
+    <label class="check"><input id="sTranslate" type="checkbox"> 辞書にないことばは翻訳サービス（MyMemory）で英語にする</label>
+
+    <label class="field">
+      <span>自分用の言い換え辞書（1行に「ことば = 英語, 英語」）</span>
+      <textarea id="sDict" rows="5" placeholder="うちの推し = idol dance&#10;ねむねむ = sleepy, tired"></textarea>
+    </label>
+
+    <details class="field">
+      <summary>ほかの端末へ引っ越し（お気に入り・辞書）</summary>
+      <p class="muted small">「書き出し」で出た文字をコピーして、もう一方の端末の同じ欄に貼り付け「読み込み」を押します。</p>
+      <textarea id="sTransfer" rows="4" spellcheck="false"></textarea>
+      <div class="row">
+        <button id="sExport" type="button">書き出し</button>
+        <button id="sImport" type="button">読み込み</button>
+      </div>
+    </details>
+
+    <div class="row-end">
+      <button id="sSave" type="button" class="primary">保存</button>
+    </div>
+  </dialog>
+
+  <script src="dict.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
