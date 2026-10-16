@@ -156,6 +156,11 @@ button.ghost { background: transparent; border-color: transparent; color: var(--
 .setup h2 { font-size: 16px; margin: 0 0 8px; }
 .setup ol { margin: 0 0 8px; padding-left: 20px; }
 .setup li { margin: 4px 0; }
+.history-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.history-head .section-title { margin: 0; }
+.history-head button { font-size: 13px; padding: 6px 8px; }
+.search-history > p { margin: 4px 0 8px; }
+.search-history .chip { max-width: 100%; overflow-wrap: anywhere; text-align: left; }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
 

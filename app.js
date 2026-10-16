@@ -5,7 +5,7 @@
   const PER_PAGE = 36;
   const LOCALE = 'jp';
   const HIST_MAX = 60;
-  const LS = { settings: 'gs.settings', favs: 'gs.favs', hist: 'gs.hist', cid: 'gs.cid', tcache: 'gs.tcache' };
+  const LS = { settings: 'gs.settings', favs: 'gs.favs', hist: 'gs.hist', searches: 'gs.searches', cid: 'gs.cid', tcache: 'gs.tcache' };
 
   // ---- 保存まわり（プライベートモード等で使えなくても動くように） ----
   const store = {
@@ -16,6 +16,8 @@
   const settings = Object.assign({ key: '', filter: 'medium', translate: true, userDict: '' }, store.get(LS.settings, {}));
   let favs = store.get(LS.favs, []);
   let hist = store.get(LS.hist, []);
+  const savedSearches = store.get(LS.searches, []);
+  let searches = Array.isArray(savedSearches) ? savedSearches.filter((q) => typeof q === 'string' && q.trim()).slice(0, 30) : [];
   const tcache = store.get(LS.tcache, {});
   let cid = store.get(LS.cid, null);
   if (!cid) {
@@ -34,6 +36,40 @@
     settings: $('#settings'), sKey: $('#sKey'), sFilter: $('#sFilter'), sTranslate: $('#sTranslate'),
     sDict: $('#sDict'), sTransfer: $('#sTransfer')
   };
+
+  function renderSearchHistory() {
+    const list = $('#searchHistoryList');
+    list.replaceChildren();
+    $('#searchHistory').hidden = searches.length === 0;
+    searches.forEach((q) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = q;
+      b.setAttribute('aria-label', `「${q}」を再検索`);
+      b.addEventListener('click', () => {
+        el.q.value = q;
+        showView('search');
+        doSearch(q);
+      });
+      list.append(b);
+    });
+  }
+
+  function rememberSearch(raw) {
+    const q = raw.trim();
+    if (!q) return;
+    searches = [q, ...searches.filter((s) => norm(s) !== norm(q))].slice(0, 30);
+    store.set(LS.searches, searches);
+    renderSearchHistory();
+  }
+
+  $('#clearSearchHistory').addEventListener('click', () => {
+    if (!searches.length || !confirm('検索したことばの履歴をすべて消しますか？')) return;
+    searches = [];
+    store.set(LS.searches, searches);
+    renderSearchHistory();
+  });
 
   // ---- 日本語の正規化と辞書 ----
   const HAS_JA = /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u;
@@ -216,6 +252,7 @@
 
   async function doSearch(raw) {
     state.raw = raw.trim();
+    rememberSearch(state.raw);
     renderMy(state.raw);
     const my = ++searchToken;
     if (!state.raw) {
@@ -583,6 +620,7 @@
 
   // ---- 起動 ----
   buildDict();
+  renderSearchHistory();
   const initial = new URLSearchParams(location.search).get('q') || '';
   el.q.value = initial;
   doSearch(initial);
